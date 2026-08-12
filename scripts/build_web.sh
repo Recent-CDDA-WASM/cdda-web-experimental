@@ -53,6 +53,7 @@ fi
 echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..." 
 
 export SDL3=0 
+export CLANG=1 
 bash build-scripts/build-emscripten.sh  
   
 # --- Step 2: Package data + assemble the real web bundle ---  
