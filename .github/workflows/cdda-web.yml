@@ -5,10 +5,11 @@ on:
     tags:  
       - '0.*'  
       - '0.*-build*'  
+      - 'cdda-experimental-*'  
   workflow_dispatch:  
     inputs:  
       release_tag:  
-        description: 'CDDA release tag to build (e.g., 0.I for stable Ito)'  
+        description: 'CDDA release tag to build (e.g., 0.I for stable Ito, or cdda-experimental-YYYY-MM-DD-HHMM for experimental)'  
         required: true  
         default: 'latest'  
   
@@ -43,13 +44,17 @@ jobs:
               echo "Fetching latest stable Ito release tag..."  
               TAG=$(git ls-remote --tags https://github.com/${{ env.CDDA_REPO }}.git | grep -E 'refs/tags/0\.[A-Z]$' | sed 's#.*/##' | sort -V | tail -n1)  
               echo "tag=$TAG" >> $GITHUB_OUTPUT  
+            elif [ "${{ github.event.inputs.release_tag }}" = "latest-experimental" ]; then  
+              echo "Fetching latest experimental release tag..."  
+              TAG=$(git ls-remote --tags https://github.com/${{ env.CDDA_REPO }}.git | grep -E 'refs/tags/cdda-experimental-' | sed 's#.*/##' | sort -V | tail -n1)  
+              echo "tag=$TAG" >> $GITHUB_OUTPUT  
             else  
               echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT  
             fi  
           else  
             echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT  
           fi  
-          echo "Building CDDA release: ${{ steps.get_tag.outputs.tag }}"  
+          echo "Building CDDA release: ${{ steps.get_tag.outputs.tag }}"
   
       # Install the ccache program itself (the "photocopy machine").  
       - name: Install ccache  
