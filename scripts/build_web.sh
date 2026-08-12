@@ -50,7 +50,9 @@ if [ ! -f "build-scripts/build-emscripten.sh" ]; then
   exit 1  
 fi  
   
-echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..."  
+echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..." 
+
+export SDL3=0 
 bash build-scripts/build-emscripten.sh  
   
 # --- Step 2: Package data + assemble the real web bundle ---  
