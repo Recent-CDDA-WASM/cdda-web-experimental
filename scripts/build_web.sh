@@ -41,7 +41,9 @@ if [ ! -f "src/mmap_file.cpp" ]; then
 fi  
 echo "Applying patched mmap_file.cpp into src/..."  
 cp "$REPO_ROOT/mmap_file.cpp" "src/mmap_file.cpp"  
-  
+
+echo "Applying patched cata_allocator.cpp into src/..."  
+cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"
 # --- Step 1: Compile with Emscripten ---  
 if [ ! -f "build-scripts/build-emscripten.sh" ]; then  
   echo "ERROR: build-scripts/build-emscripten.sh not found in this source tree."  
