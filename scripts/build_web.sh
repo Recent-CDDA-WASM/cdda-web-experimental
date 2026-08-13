@@ -44,6 +44,15 @@ cp "$REPO_ROOT/mmap_file.cpp" "src/mmap_file.cpp"
 
 echo "Applying patched cata_allocator.cpp into src/..."  
 cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"
+
+# game_io.cpp uses EM_ASM (inline JS) but the experimental source doesn't  
+# include <emscripten.h> in that file, so EM_ASM is undefined and clang tries  
+# to compile the JS as C++. Prepend the include (guarded) so EM_ASM is defined.  
+if [ -f "src/game_io.cpp" ] && ! grep -q "emscripten.h" src/game_io.cpp; then  
+  echo "Injecting emscripten.h include into game_io.cpp..."  
+  printf '#if defined(__EMSCRIPTEN__)\n#include <emscripten.h>\n#endif\n' | cat - src/game_io.cpp > src/game_io.cpp.tmp && mv src/game_io.cpp.tmp src/game_io.cpp  
+fi
+
 # --- Step 1: Compile with Emscripten ---  
 if [ ! -f "build-scripts/build-emscripten.sh" ]; then  
   echo "ERROR: build-scripts/build-emscripten.sh not found in this source tree."  
