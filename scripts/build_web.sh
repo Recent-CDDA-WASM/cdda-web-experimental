@@ -102,7 +102,7 @@ mkdir -p /tmp/CDDA-Tilesets
 tar -xzf /tmp/CDDA-Tilesets.tar.gz -C /tmp/CDDA-Tilesets --strip-components=1  
   
 echo "Composing UltimateCataclysm tileset..."  
-python3 tools/gfx_tools/compose.py /tmp/CDDA-Tilesets/gfx/UltimateCataclysm gfx/UltimateCataclysm  
+python3 tools/gfx_tools/compose.py /tmp/CDDA-Tilesets/gfx/UltimateCataclysm gfx/UltimateCataclysm || true
   
 # ============================================================  
 # Step 1: Compile with Emscripten (SDL2 path, clang warnings,  
