@@ -4,11 +4,11 @@ set -e
 SOURCE_DIR="cdda-source"  
 OUTPUT_DIR="web-output"  
   
-echo "Starting CDDA WebAssembly build using official 0.I build scripts..."  
+echo "Starting CDDA WebAssembly build (experimental) using official build scripts..."  
   
 # Capture the repo checkout root BEFORE we cd into the source tree, so we can  
 # reliably find vendored files (coi-serviceworker.min.js, error-overlay.js,  
-# and the patched mmap_file.cpp) later.  
+# and the patched mmap_file.cpp / cata_allocator.cpp) later.  
 REPO_ROOT="$(pwd)"  
   
 SOURCE_ABS_PATH="$(pwd)/$SOURCE_DIR"  
@@ -24,11 +24,7 @@ fi
 mkdir -p "$OUTPUT_ABS_PATH"  
 cd "$SOURCE_ABS_PATH"  
   
-# --- Step 0: Apply our patched mmap_file.cpp into the fetched source ---  
-# The mmap crash during world gen is INSIDE the compiled engine (.wasm), so it  
-# can only be fixed in C++. We keep just the one patched file at the repo root  
-# and drop it into the downloaded source here, right before compiling, so the  
-# compiler builds OUR version instead of the stock one.  
+# --- Step 0a: Apply patched mmap_file.cpp into the fetched source ---  
 if [ ! -f "$REPO_ROOT/mmap_file.cpp" ]; then  
   echo "ERROR: patched mmap_file.cpp not found at repo root ($REPO_ROOT)."  
   exit 1  
@@ -41,14 +37,41 @@ if [ ! -f "src/mmap_file.cpp" ]; then
 fi  
 echo "Applying patched mmap_file.cpp into src/..."  
 cp "$REPO_ROOT/mmap_file.cpp" "src/mmap_file.cpp"  
-
+  
+# --- Step 0b: Apply patched cata_allocator.cpp into the fetched source ---  
+# The experimental engine defaults to the bundled snmalloc allocator, which has  
+# no WebAssembly (wasm32) AAL backend. Our patched copy adds  
+# "&& !defined(__EMSCRIPTEN__)" to the CATA_USE_SNMALLOC guard so snmalloc is  
+# skipped on the web build.  
+if [ ! -f "$REPO_ROOT/cata_allocator.cpp" ]; then  
+  echo "ERROR: patched cata_allocator.cpp not found at repo root ($REPO_ROOT)."  
+  exit 1  
+fi  
+if [ ! -f "src/cata_allocator.cpp" ]; then  
+  echo "ERROR: src/cata_allocator.cpp not found in fetched source - layout changed."  
+  exit 1  
+fi  
 echo "Applying patched cata_allocator.cpp into src/..."  
-cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"
-
-# Patch pixel_minimap.cpp: get_shared_variant_pass() is SDL3-only (declared in  
-# sdltiles.h under SDL_MAJOR_VERSION >= 3). On the SDL2 web build it is  
-# undeclared. scoped_render_target's vp argument defaults to null and its  
-# SDL3-only member is compiled out, so a null fallback is correct on SDL2.  
+cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"  
+  
+# --- Step 0c: Inject <emscripten.h> into game_io.cpp for EM_ASM ---  
+# The experimental game_io.cpp uses EM_ASM( window.game_unsaved = ... ) without  
+# including <emscripten.h>, so the macro isn't defined. Add the include once.  
+if [ -f "src/game_io.cpp" ] && ! grep -q "#include <emscripten.h>" src/game_io.cpp; then  
+  echo "Injecting <emscripten.h> include into game_io.cpp..."  
+  awk '  
+    { print }  
+    /^#include/ && !done {  
+      print "#include <emscripten.h>"  
+      done=1  
+    }  
+  ' src/game_io.cpp > src/game_io.cpp.tmp && mv src/game_io.cpp.tmp src/game_io.cpp  
+fi  
+  
+# --- Step 0d: Inject SDL2 get_shared_variant_pass() fallback into pixel_minimap.cpp ---  
+# get_shared_variant_pass() is declared only under the SDL3 (SDL_MAJOR_VERSION >= 3)  
+# path. Because we force SDL2 (SDL3=0), the call sites in pixel_minimap.cpp would  
+# reference an undeclared identifier. Provide a null-returning SDL2 fallback.  
 if [ -f "src/pixel_minimap.cpp" ] && ! grep -q "SDL2 variant_pass fallback" src/pixel_minimap.cpp; then  
   echo "Injecting SDL2 get_shared_variant_pass fallback into pixel_minimap.cpp..."  
   awk '  
@@ -65,16 +88,27 @@ if [ -f "src/pixel_minimap.cpp" ] && ! grep -q "SDL2 variant_pass fallback" src/
       done=1  
     }  
   ' src/pixel_minimap.cpp > src/pixel_minimap.cpp.tmp && mv src/pixel_minimap.cpp.tmp src/pixel_minimap.cpp  
-fi
-
-# game_io.cpp uses EM_ASM (inline JS) but the experimental source doesn't  
-# include <emscripten.h> in that file, so EM_ASM is undefined and clang tries  
-# to compile the JS as C++. Prepend the include (guarded) so EM_ASM is defined.  
-if [ -f "src/game_io.cpp" ] && ! grep -q "emscripten.h" src/game_io.cpp; then  
-  echo "Injecting emscripten.h include into game_io.cpp..."  
-  printf '#if defined(__EMSCRIPTEN__)\n#include <emscripten.h>\n#endif\n' | cat - src/game_io.cpp > src/game_io.cpp.tmp && mv src/game_io.cpp.tmp src/game_io.cpp  
-fi
-
+fi  
+  
+# --- Step 0e: Compose the Ultica graphical tileset into gfx/ ---  
+# The experimental source tarball ships only the base gfx/ content; the full  
+# graphical tilesets live in CleverRaven/CDDA-Tilesets. Fetch that repo as a  
+# tarball (no git auth needed) and compose Ultica into gfx/ so prepare-web.sh's  
+# blanket "cp -R gfx" picks it up.  
+echo "Installing tileset compose dependencies (libvips + pyvips)..."  
+sudo apt-get update -y  
+sudo apt-get install -y libvips42 || sudo apt-get install -y libvips42t64  
+python3 -m pip install --quiet pyvips Pillow  
+  
+echo "Downloading CDDA-Tilesets tarball (no git auth needed)..."  
+wget -O /tmp/CDDA-Tilesets.tar.gz \  
+  "https://github.com/CleverRaven/CDDA-Tilesets/archive/refs/heads/main.tar.gz"  
+mkdir -p /tmp/CDDA-Tilesets  
+tar -xzf /tmp/CDDA-Tilesets.tar.gz -C /tmp/CDDA-Tilesets --strip-components=1  
+  
+echo "Composing Ultica tileset into gfx/Ultica..."  
+python3 tools/gfx_tools/compose.py /tmp/CDDA-Tilesets/gfx/Ultica gfx/Ultica  
+  
 # --- Step 1: Compile with Emscripten ---  
 if [ ! -f "build-scripts/build-emscripten.sh" ]; then  
   echo "ERROR: build-scripts/build-emscripten.sh not found in this source tree."  
@@ -83,33 +117,18 @@ if [ ! -f "build-scripts/build-emscripten.sh" ]; then
   exit 1  
 fi  
   
-echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..." 
-
-export SDL3=0 
-export CLANG=1 
-echo "Forcing CC=emcc so C files (zstd, cata_allocator_c) build as wasm..."  
-sed -i 's/NATIVE=emscripten/CC=emcc NATIVE=emscripten/' build-scripts/build-emscripten.sh
-# --- Add the Ultica graphical tileset ---  
-# Ultica lives in the separate CleverRaven/CDDA-Tilesets repo, not the main  
-# source tarball, so we clone it, compose the loose sprites into a real  
-# tile_config.json + tilesheet, and drop the result into gfx/ so prepare-web.sh  
-# copies it into cataclysm-tiles.data.  
-echo "Installing compose.py deps (libvips + pyvips)..."  
-sudo apt-get update -y && sudo apt-get install -y libvips42  
-python3 -m pip install --quiet pyvips  
+# Experimental build toolchain flags:  
+#  - SDL3=0 : Emscripten has no SDL3 >= 3.4.0 port; force the SDL2 path.  
+#  - CLANG=1: emcc is clang under the hood; use clang-style warning flags.  
+export SDL3=0  
+export CLANG=1  
   
-echo "Cloning CDDA-Tilesets..."  
-rm -rf /tmp/CDDA-Tilesets  
-echo "Downloading CDDA-Tilesets tarball (no git auth needed)..."  
-mkdir -p /tmp/CDDA-Tilesets  
-wget -O /tmp/CDDA-Tilesets.tar.gz "https://github.com/CleverRaven/CDDA-Tilesets/archive/refs/heads/main.tar.gz"
-tar -xzf /tmp/tilesets.tar.gz -C /tmp/CDDA-Tilesets --strip-components=1
+# Force CC=emcc so C files (zstd, cata_allocator_c) build as wasm objects  
+# instead of native ELF (otherwise wasm-ld errors with "unknown file type").  
+echo "Forcing CC=emcc so C files build as wasm..."  
+sed -i 's/NATIVE=emscripten/CC=emcc NATIVE=emscripten/' build-scripts/build-emscripten.sh  
   
-echo "Composing Ultica into gfx/Ultica..."  
-rm -rf gfx/Ultica  
-mkdir -p gfx/Ultica  
-python3 tools/gfx_tools/compose.py /tmp/CDDA-Tilesets/gfx/Ultica gfx/Ultica \  
-  || echo "WARNING: compose.py reported issues for Ultica (continuing)"
+echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..."  
 bash build-scripts/build-emscripten.sh  
   
 # --- Step 2: Package data + assemble the real web bundle ---  
@@ -149,10 +168,7 @@ if [ -f "$OUTPUT_ABS_PATH/index.html" ]; then
   cp "$REPO_ROOT/coi-serviceworker.min.js" "$OUTPUT_ABS_PATH/"  
   sed -i 's#<head>#<head><script src="coi-serviceworker.min.js"></script>#' "$OUTPUT_ABS_PATH/index.html"  
   
-  # 2) Visible error console (no DevTools). Vendored as a real .js file so the  
-  #    build never has to embed multi-line JS through sed (that "\n" is exactly  
-  #    what caused the SyntaxError at :178). Injected first in <head> so it is  
-  #    active before any game code runs.  
+  # 2) Visible error console (no DevTools).  
   if [ ! -f "$REPO_ROOT/error-overlay.js" ]; then  
     echo "ERROR: error-overlay.js not found at repo root ($REPO_ROOT)."  
     exit 1  
