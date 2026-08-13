@@ -89,6 +89,24 @@ export SDL3=0
 export CLANG=1 
 echo "Forcing CC=emcc so C files (zstd, cata_allocator_c) build as wasm..."  
 sed -i 's/NATIVE=emscripten/CC=emcc NATIVE=emscripten/' build-scripts/build-emscripten.sh
+# --- Add the Ultica graphical tileset ---  
+# Ultica lives in the separate CleverRaven/CDDA-Tilesets repo, not the main  
+# source tarball, so we clone it, compose the loose sprites into a real  
+# tile_config.json + tilesheet, and drop the result into gfx/ so prepare-web.sh  
+# copies it into cataclysm-tiles.data.  
+echo "Installing compose.py deps (libvips + pyvips)..."  
+sudo apt-get update -y && sudo apt-get install -y libvips42  
+python3 -m pip install --quiet pyvips  
+  
+echo "Cloning CDDA-Tilesets..."  
+rm -rf /tmp/CDDA-Tilesets  
+git clone --depth 1 https://github.com/CleverRaven/CDDA-Tilesets.git /tmp/CDDA-Tilesets  
+  
+echo "Composing Ultica into gfx/Ultica..."  
+rm -rf gfx/Ultica  
+mkdir -p gfx/Ultica  
+python3 tools/gfx_tools/compose.py /tmp/CDDA-Tilesets/gfx/Ultica gfx/Ultica \  
+  || echo "WARNING: compose.py reported issues for Ultica (continuing)"
 bash build-scripts/build-emscripten.sh  
   
 # --- Step 2: Package data + assemble the real web bundle ---  
