@@ -95,19 +95,22 @@ fi
 # graphical tilesets live in CleverRaven/CDDA-Tilesets. Fetch that repo as a  
 # tarball (no git auth needed) and compose Ultica into gfx/ so prepare-web.sh's  
 # blanket "cp -R gfx" picks it up.  
-echo "Installing tileset compose dependencies (libvips + pyvips)..."  
-sudo apt-get update -y  
-sudo apt-get install -y libvips42 || sudo apt-get install -y libvips42t64  
-python3 -m pip install --quiet pyvips Pillow  
+# --- Fetch + compose UltimateCataclysm tileset (I-am-Erk/CDDA-Tilesets, master) ---  
+echo "Installing tileset compose deps (libvips + pyvips)..."  
+sudo apt-get update  
+sudo apt-get install -y libvips42t64 || sudo apt-get install -y libvips42  
+pip install pyvips  
   
 echo "Downloading CDDA-Tilesets tarball (no git auth needed)..."  
-wget -O /tmp/CDDA-Tilesets.tar.gz \  
-  "https://github.com/CleverRaven/CDDA-Tilesets/archive/refs/heads/main.tar.gz"  
+wget -O /tmp/CDDA-Tilesets.tar.gz "https://github.com/I-am-Erk/CDDA-Tilesets/archive/refs/heads/master.tar.gz"  
+  
 mkdir -p /tmp/CDDA-Tilesets  
 tar -xzf /tmp/CDDA-Tilesets.tar.gz -C /tmp/CDDA-Tilesets --strip-components=1  
   
-echo "Composing Ultica tileset into gfx/Ultica..."  
-python3 tools/gfx_tools/compose.py /tmp/CDDA-Tilesets/gfx/Ultica gfx/Ultica  
+echo "Composing UltimateCataclysm tileset..."  
+python3 cdda-source/tools/gfx_tools/compose.py \  
+  /tmp/CDDA-Tilesets/gfx/UltimateCataclysm \  
+  cdda-source/gfx/UltimateCataclysm
   
 # --- Step 1: Compile with Emscripten ---  
 if [ ! -f "build-scripts/build-emscripten.sh" ]; then  
