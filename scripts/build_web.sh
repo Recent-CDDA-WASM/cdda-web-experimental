@@ -45,6 +45,28 @@ cp "$REPO_ROOT/mmap_file.cpp" "src/mmap_file.cpp"
 echo "Applying patched cata_allocator.cpp into src/..."  
 cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"
 
+# Patch pixel_minimap.cpp: get_shared_variant_pass() is SDL3-only (declared in  
+# sdltiles.h under SDL_MAJOR_VERSION >= 3). On the SDL2 web build it is  
+# undeclared. scoped_render_target's vp argument defaults to null and its  
+# SDL3-only member is compiled out, so a null fallback is correct on SDL2.  
+if [ -f "src/pixel_minimap.cpp" ] && ! grep -q "SDL2 variant_pass fallback" src/pixel_minimap.cpp; then  
+  echo "Injecting SDL2 get_shared_variant_pass fallback into pixel_minimap.cpp..."  
+  awk '  
+    { print }  
+    /#include "vpart_position.h"/ && !done {  
+      print ""  
+      print "// SDL2 variant_pass fallback (Emscripten build)."  
+      print "#if SDL_MAJOR_VERSION < 3"  
+      print "static cata_shader::variant_pass *get_shared_variant_pass()"  
+      print "{"  
+      print "    return nullptr;"  
+      print "}"  
+      print "#endif"  
+      done=1  
+    }  
+  ' src/pixel_minimap.cpp > src/pixel_minimap.cpp.tmp && mv src/pixel_minimap.cpp.tmp src/pixel_minimap.cpp  
+fi
+
 # game_io.cpp uses EM_ASM (inline JS) but the experimental source doesn't  
 # include <emscripten.h> in that file, so EM_ASM is undefined and clang tries  
 # to compile the JS as C++. Prepend the include (guarded) so EM_ASM is defined.  
