@@ -87,6 +87,8 @@ echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..."
 
 export SDL3=0 
 export CLANG=1 
+echo "Forcing CC=emcc so C files (zstd, cata_allocator_c) build as wasm..."  
+sed -i 's/NATIVE=emscripten/CC=emcc NATIVE=emscripten/' build-scripts/build-emscripten.sh
 bash build-scripts/build-emscripten.sh  
   
 # --- Step 2: Package data + assemble the real web bundle ---  
