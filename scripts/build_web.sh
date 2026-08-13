@@ -102,7 +102,7 @@ echo "Cloning CDDA-Tilesets..."
 rm -rf /tmp/CDDA-Tilesets  
 echo "Downloading CDDA-Tilesets tarball (no git auth needed)..."  
 mkdir -p /tmp/CDDA-Tilesets  
-wget -O /tmp/tilesets.tar.gz https://github.com/CleverRaven/CDDA-Tilesets/archive/refs/heads/master.tar.gz  
+wget -O /tmp/CDDA-Tilesets.tar.gz "https://github.com/CleverRaven/CDDA-Tilesets/archive/refs/heads/main.tar.gz"
 tar -xzf /tmp/tilesets.tar.gz -C /tmp/CDDA-Tilesets --strip-components=1
   
 echo "Composing Ultica into gfx/Ultica..."  
