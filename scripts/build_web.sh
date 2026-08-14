@@ -120,6 +120,7 @@ if [ ! -f "build-scripts/build-emscripten.sh" ]; then
 fi  
 
 export CLANG=1  
+export EMCC_CFLAGS="-Wno-experimental"
   
 echo "Forcing CC=emcc so C files (zstd, cata_allocator_c) build as wasm..."  
 sed -i 's/NATIVE=emscripten/CC=emcc NATIVE=emscripten/' build-scripts/build-emscripten.sh  
