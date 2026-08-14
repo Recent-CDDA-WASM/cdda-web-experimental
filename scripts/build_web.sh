@@ -91,10 +91,13 @@ fi
 #          packed into cataclysm-tiles.data. All paths are  
 #          source-relative (we are already inside cdda-source).  
 # ============================================================  
-echo "Installing tileset compose deps (libvips + pyvips)..."  
+echo "Installing tileset compose deps (libvips + pyvips) + shader compiler (glslang)..."  
 sudo apt-get update  
 sudo apt-get install -y libvips42t64 || sudo apt-get install -y libvips42  
+sudo apt-get install -y glslang-tools  
 pip install pyvips  
+export GLSLANG="$(command -v glslangValidator || command -v glslang)"  
+echo "Using GLSLANG=$GLSLANG"
   
 echo "Downloading CDDA-Tilesets tarball (no git auth needed)..."  
 wget -O /tmp/CDDA-Tilesets.tar.gz "https://github.com/I-am-Erk/CDDA-Tilesets/archive/refs/heads/master.tar.gz"  
