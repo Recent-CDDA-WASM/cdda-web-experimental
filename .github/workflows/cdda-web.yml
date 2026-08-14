@@ -18,7 +18,7 @@ permissions:
   contents: write  
   
 env:  
-  EMSCRIPTEN_VERSION: '3.1.64'
+  EMSCRIPTEN_VERSION: '6.0.6'
   CDDA_REPO: 'CleverRaven/cataclysm-dda'  
   BUILD_TYPE: 'Release'  
   BUILD_TILES: 'true'  
