@@ -131,6 +131,18 @@ echo "Here is the patched build-emscripten.sh for verification:"
 cat build-scripts/build-emscripten.sh  
   
 echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..."  
+
+# --- SDL3 port wiring for Emscripten (experimental) ---  
+echo "Patching Makefile to bypass SDL3 version check for emscripten..."  
+# Turn the fatal version check into a no-op for the NATIVE=emscripten path.  
+sed -i 's/^\(\s*\)\$(error SDL3 >= 3.4.0 required.*)/\1$(info SDL3 version check skipped for emscripten)/' Makefile  
+  
+echo "Forcing SDL3 ports into the emscripten compile/link..."  
+export EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf"  
+export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf"
+
+sed -i 's/ifeq (\$(SDL3_DO_VERSION_CHECK),1)/ifeq ($(SDL3_DO_VERSION_CHECK),SKIP)/' Makefile
+
 bash build-scripts/build-emscripten.sh
   
 # ============================================================  
