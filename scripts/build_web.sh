@@ -140,12 +140,43 @@ sed -i 's/^\(\s*\)\$(error SDL3 >= 3.4.0 required.*)/\1$(info SDL3 version check
   
 echo "Forcing SDL3 ports into the emscripten compile/link..."  
 export EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf"  
-export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf"
+export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf /tmp/sdl3_image_prefix/lib/libSDL3_image.a"
 
 sed -i 's/ifeq (\$(SDL3_DO_VERSION_CHECK),1)/ifeq ($(SDL3_DO_VERSION_CHECK),SKIP)/' Makefile
 
 echo "Patching build-emscripten.sh to allow the experimental SDL3 port..."  
-sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -Wno-experimental -Wno-unused-template" make PCH=0 #' build-scripts/build-emscripten.sh
+sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -Wno-experimental -Wno-unused-template -I/tmp/sdl3_image_prefix/include" make PCH=0 #' build-scripts/build-emscripten.sh
+
+# ---- Option A: build SDL3_image from source to a wasm static lib ----  
+SDL_PREFIX="/tmp/sdl3_image_prefix"  
+echo "Building SDL3_image (+ throwaway SDL3 for CMake config) from source..."  
+mkdir -p /tmp/sdlsrc && pushd /tmp/sdlsrc  
+  
+# 1) SDL3 from source, installed ONLY so SDL_image's find_package(SDL3) works.  
+#    Match the port version (3.4.2) so headers line up.  
+git clone --depth 1 --branch release-3.4.2 https://github.com/libsdl-org/SDL  
+emcmake cmake -S SDL -B SDL/build -DCMAKE_BUILD_TYPE=Release \  
+  -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF  
+cmake --build SDL/build -j"$(nproc)"  
+cmake --install SDL/build --prefix "$SDL_PREFIX"  
+  
+# 2) SDL3_image from source, STB backend (PNG/JPG via bundled stb_image,  
+#    no libpng/zlib), everything else off -> a single libSDL3_image.a.  
+git clone --depth 1 --branch release-3.2.4 https://github.com/libsdl-org/SDL_image  
+emcmake cmake -S SDL_image -B SDL_image/build -DCMAKE_BUILD_TYPE=Release \  
+  -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH="$SDL_PREFIX" \  
+  -DSDLIMAGE_SAMPLES=OFF -DSDLIMAGE_DEPS_SHARED=OFF -DSDLIMAGE_VENDORED=OFF \  
+  -DSDLIMAGE_BACKEND_STB=ON \  
+  -DSDLIMAGE_PNG=ON -DSDLIMAGE_JPG=ON \  
+  -DSDLIMAGE_AVIF=OFF -DSDLIMAGE_WEBP=OFF -DSDLIMAGE_JXL=OFF \  
+  -DSDLIMAGE_TIF=OFF -DSDLIMAGE_BMP=ON -DSDLIMAGE_GIF=OFF  
+cmake --build SDL_image/build -j"$(nproc)"  
+cmake --install SDL_image/build --prefix "$SDL_PREFIX"  
+  
+popd  
+echo "SDL3_image built. Contents of $SDL_PREFIX/lib:"  
+ls -la "$SDL_PREFIX/lib" || true  
+# ---- end Option A build ----
 
 echo "----- build-emscripten.sh after patch -----"  
 cat build-scripts/build-emscripten.sh  
