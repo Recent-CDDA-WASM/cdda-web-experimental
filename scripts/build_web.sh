@@ -145,7 +145,7 @@ export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf"
 sed -i 's/ifeq (\$(SDL3_DO_VERSION_CHECK),1)/ifeq ($(SDL3_DO_VERSION_CHECK),SKIP)/' Makefile
 
 echo "Patching build-emscripten.sh to allow the experimental SDL3 port..."  
-sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="-Wno-experimental" make #' build-scripts/build-emscripten.sh  
+sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -Wno-experimental" make #' build-scripts/build-emscripten.sh
   
 echo "----- build-emscripten.sh after patch -----"  
 cat build-scripts/build-emscripten.sh  
