@@ -124,8 +124,14 @@ export CLANG=1
 echo "Forcing CC=emcc so C files (zstd, cata_allocator_c) build as wasm..."  
 sed -i 's/NATIVE=emscripten/CC=emcc NATIVE=emscripten/' build-scripts/build-emscripten.sh  
   
+echo "Patching hardcoded emsdk version in build-scripts/build-emscripten.sh (3.1.51 -> 6.0.6)..."  
+sed -i 's/3\.1\.51/6.0.6/g' build-scripts/build-emscripten.sh  
+  
+echo "Here is the patched build-emscripten.sh for verification:"  
+cat build-scripts/build-emscripten.sh  
+  
 echo "Compiling cataclysm-tiles.js via build-scripts/build-emscripten.sh..."  
-bash build-scripts/build-emscripten.sh  
+bash build-scripts/build-emscripten.sh
   
 # ============================================================  
 # Step 2: Package data + assemble the real web bundle  
