@@ -163,6 +163,7 @@ cmake --install SDL/build --prefix "$SDL_PREFIX"
 #    no libpng/zlib), everything else off -> a single libSDL3_image.a.  
 git clone --depth 1 --branch release-3.2.4 https://github.com/libsdl-org/SDL_image  
 emcmake cmake -S SDL_image -B SDL_image/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_PREFIX_PATH="$SDL_PREFIX" -DSDL3_DIR="$SDL_PREFIX/lib/cmake/SDL3" -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH -DSDLIMAGE_SAMPLES=OFF -DSDLIMAGE_DEPS_SHARED=OFF -DSDLIMAGE_VENDORED=OFF -DSDLIMAGE_BACKEND_STB=ON -DSDLIMAGE_PNG=ON -DSDLIMAGE_JPG=ON -DSDLIMAGE_AVIF=OFF -DSDLIMAGE_WEBP=OFF -DSDLIMAGE_JXL=OFF -DSDLIMAGE_TIF=OFF -DSDLIMAGE_BMP=ON -DSDLIMAGE_GIF=OFF
+cmake --build SDL_image/build -j"$(nproc)"
 cmake --install SDL_image/build --prefix "$SDL_PREFIX"  
   
 popd  
