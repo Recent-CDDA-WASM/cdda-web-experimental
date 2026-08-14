@@ -145,7 +145,7 @@ export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf /tmp/sdl3_image_pre
 sed -i 's/ifeq (\$(SDL3_DO_VERSION_CHECK),1)/ifeq ($(SDL3_DO_VERSION_CHECK),SKIP)/' Makefile
 
 echo "Patching build-emscripten.sh to allow the experimental SDL3 port..."  
-sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -Wno-experimental -Wno-unused-template -I/tmp/sdl3_image_prefix/include -DUSE_SDL3" make PCH=0 #' build-scripts/build-emscripten.sh
+sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -Wno-experimental -Wno-unused-template -Wno-unused-function -I/tmp/sdl3_image_prefix/include -DUSE_SDL3" make PCH=0 #' build-scripts/build-emscripten.sh
 
 # ---- Option A: build SDL3_image from source to a wasm static lib ----  
 SDL_PREFIX="/tmp/sdl3_image_prefix"  
