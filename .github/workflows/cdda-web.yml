@@ -107,6 +107,14 @@ jobs:
         run: |  
           chmod +x scripts/fetch_release.sh  
           ./scripts/fetch_release.sh "${{ steps.get_tag.outputs.tag }}"  
+
+      - name: Add swap space  
+        run: |  
+          sudo fallocate -l 10G /swapfile  
+          sudo chmod 600 /swapfile  
+          sudo mkswap /swapfile  
+          sudo swapon /swapfile  
+          free -h
   
       - name: Build CDDA WebAssembly  
         env:  
