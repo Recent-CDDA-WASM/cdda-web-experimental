@@ -48,8 +48,6 @@ if [ ! -f "$REPO_ROOT/cata_allocator.cpp" ]; then
 fi  
 echo "Applying patched cata_allocator.cpp into src/..."  
 cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"  
-echo "DIAGNOSTIC: forcing curses build (TILES=0) to test whether the runner can link ANY cdda-web target..."  
-sed -i 's/TILES=1/TILES=0/g; s/cataclysm-tiles\.js/cataclysm.js/g' build-scripts/build-emscripten.sh
 
 # ============================================================  
 # Step 0c: Ensure emscripten.h is included in game_io.cpp  
