@@ -12,9 +12,9 @@ on:
         description: 'CDDA release tag to build (e.g., 0.I for stable Ito, or cdda-experimental-YYYY-MM-DD-HHMM for experimental)'  
         required: true  
         default: 'cdda-experimental-2026-08-13-1926'  
-  
+    
 # Lets the build push the finished site to the gh-pages branch.  
- permissions:  
+permissions:  
   contents: read  
   pages: write  
   id-token: write
