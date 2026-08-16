@@ -181,6 +181,9 @@ echo "-------------------------------------------"
 grep -nE 'cataclysm[^:]*:' Makefile || true
 grep -nE 'cataclysm[^:[:space:]]*(\.js)?[[:space:]]*:' Makefile || true
 
+echo "Stripping baked-in -Os/-sLZ4 from emscripten release LDFLAGS so -O0 takes effect..."  
+sed -i '/LDFLAGS += -Os/d; /LDFLAGS += -sLZ4/d' Makefile
+
 bash build-scripts/build-emscripten.sh
   
 # ============================================================  
