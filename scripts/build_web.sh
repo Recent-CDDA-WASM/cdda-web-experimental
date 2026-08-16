@@ -211,15 +211,25 @@ cp -r build/. "$OUTPUT_ABS_PATH/"
 # ============================================================  
 # Step 3b: Shrink the linked wasm with wasm-opt (Plan B)  
 # ============================================================  
-WASM_OUT="$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"  
-if [ -f "$WASM_OUT" ]; then  
-  echo "wasm size BEFORE wasm-opt:"; ls -lh "$WASM_OUT"  
-  wasm-opt -Oz --enable-bulk-memory --enable-threads \  
-    "$WASM_OUT" -o "$WASM_OUT.opt" && mv "$WASM_OUT.opt" "$WASM_OUT"  
-  echo "wasm size AFTER wasm-opt:"; ls -lh "$WASM_OUT"  
-else  
-  echo "WARNING: $WASM_OUT not found; skipping wasm-opt."  
-fi
+# Locate wasm-opt from the active emsdk/binaryen install  
+WASM_OPT="$(command -v wasm-opt || true)"  
+if [ -z "$WASM_OPT" ]; then  
+  WASM_OPT="$(dirname "$(command -v emcc)")/../bin/wasm-opt"      # emsdk/upstream/bin/wasm-opt  
+  [ -x "$WASM_OPT" ] || WASM_OPT="$HOME/emsdk/upstream/bin/wasm-opt"  
+fi  
+  
+echo "Using wasm-opt at: $WASM_OPT"  
+"$WASM_OPT" --version  
+  
+echo "wasm size BEFORE wasm-opt:"  
+ls -lh "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"  
+  
+"$WASM_OPT" -Oz \  
+  "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm" \  
+  -o "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"  
+  
+echo "wasm size AFTER wasm-opt:"  
+ls -lh "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"
   
 # --- Sanity check ---  
 for f in cataclysm-tiles.js cataclysm-tiles.wasm cataclysm-tiles.data cataclysm-tiles.data.js index.html; do  
