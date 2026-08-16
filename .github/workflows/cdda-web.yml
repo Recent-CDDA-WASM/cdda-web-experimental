@@ -22,7 +22,7 @@ env:
   CDDA_REPO: 'CleverRaven/cataclysm-dda'  
   BUILD_TYPE: 'Release'  
   BUILD_TILES: 'true'  
-  BUILD_SOUND: 'true'  
+  BUILD_SOUND: 'false'  
   BUILD_LOCALIZATION: 'false'  
   
 jobs:  
