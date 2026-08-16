@@ -131,13 +131,7 @@ jobs:
           CCACHE_DIR: /home/runner/.ccache  
           CCACHE_MAXSIZE: 5G  
         run: |  
-          source ~/emsdk/emsdk_env.sh  
-          # Show stats before so we can compare after the build.  
-          ccache --zero-stats || true  
-          chmod +x scripts/build_web.sh  
-          ./scripts/build_web.sh  
-          # On the 2nd+ build the "cache hit" number here should be high.  
-          ccache --show-stats || true  
+          # start the memory sampler FIRST, in the background  
           ( while true; do  
               echo "MEMSAMPLE $(date +%T) $(free -m | awk '/Mem:/{print "used="$3"MB"} /Swap:/{print "swap="$3"MB"}' | tr '\n' ' ')";  
               sleep 15;  
@@ -147,6 +141,7 @@ jobs:
           ccache --zero-stats || true  
           chmod +x scripts/build_web.sh  
           ./scripts/build_web.sh  
+          ccache --show-stats || true  
           kill $MEMPID || true
   
       - name: Package web build  
