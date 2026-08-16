@@ -14,8 +14,10 @@ on:
         default: 'cdda-experimental-2026-08-13-1926'  
   
 # Lets the build push the finished site to the gh-pages branch.  
-permissions:  
-  contents: write  
+ permissions:  
+  contents: read  
+  pages: write  
+  id-token: write
   
 env:  
   EMSCRIPTEN_VERSION: '6.0.6'
@@ -162,16 +164,17 @@ jobs:
           path: web-output/  
           retention-days: 30  
   
-      - name: Deploy to GitHub Pages  
-        uses: peaceiris/actions-gh-pages@v3  
+      - name: Setup Pages  
+        uses: actions/configure-pages@v5  
+  
+      - name: Upload Pages artifact  
+        uses: actions/upload-pages-artifact@v3  
         with:  
-          github_token: ${{ secrets.GITHUB_TOKEN }}  
-          publish_dir: ./web-output  
-          publish_branch: gh-pages  
-          force_orphan: true  
-          user_name: 'github-actions[bot]'  
-          user_email: 'github-actions[bot]@users.noreply.github.com'  
-          commit_message: 'Deploy CDDA Web ${{ steps.get_tag.outputs.tag }}'  
+          path: ./web-output  
+  
+      - name: Deploy to GitHub Pages  
+        id: deployment  
+        uses: actions/deploy-pages@v4
   
       - name: Create deployment summary  
         run: |  
