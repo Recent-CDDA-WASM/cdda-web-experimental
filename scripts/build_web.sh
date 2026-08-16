@@ -180,6 +180,8 @@ echo "----- build-emscripten.sh after patch -----"
 cat build-scripts/build-emscripten.sh  
 echo "-------------------------------------------"
 
+grep -nE 'cataclysm[^:]*:' Makefile || true
+
 bash build-scripts/build-emscripten.sh
   
 # ============================================================  
