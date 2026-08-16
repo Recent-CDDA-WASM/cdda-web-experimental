@@ -181,6 +181,7 @@ cat build-scripts/build-emscripten.sh
 echo "-------------------------------------------"
 
 grep -nE 'cataclysm[^:]*:' Makefile || true
+grep -nE 'cataclysm[^:[:space:]]*(\.js)?[[:space:]]*:' Makefile || true
 
 bash build-scripts/build-emscripten.sh
   
