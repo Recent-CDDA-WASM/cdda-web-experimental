@@ -107,10 +107,18 @@ jobs:
         run: |  
           chmod +x scripts/fetch_release.sh  
           ./scripts/fetch_release.sh "${{ steps.get_tag.outputs.tag }}"  
-
+     
+      - name: Free up disk space  
+        run: |  
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL  
+          sudo docker image prune --all --force || true  
+          df -h
+          
       - name: Add swap space  
         run: |  
-          sudo fallocate -l 10G /mnt/swapfile  
+          sudo swapoff /mnt/swapfile || true  
+          sudo rm -f /mnt/swapfile  
+          sudo fallocate -l 13G /mnt/swapfile  
           sudo chmod 600 /mnt/swapfile  
           sudo mkswap /mnt/swapfile  
           sudo swapon /mnt/swapfile  
@@ -130,6 +138,16 @@ jobs:
           ./scripts/build_web.sh  
           # On the 2nd+ build the "cache hit" number here should be high.  
           ccache --show-stats || true  
+          ( while true; do  
+              echo "MEMSAMPLE $(date +%T) $(free -m | awk '/Mem:/{print "used="$3"MB"} /Swap:/{print "swap="$3"MB"}' | tr '\n' ' ')";  
+              sleep 15;  
+            done ) &  
+          MEMPID=$!  
+          source ~/emsdk/emsdk_env.sh  
+          ccache --zero-stats || true  
+          chmod +x scripts/build_web.sh  
+          ./scripts/build_web.sh  
+          kill $MEMPID || true
   
       - name: Package web build  
         run: |  
