@@ -207,6 +207,19 @@ fi
   
 echo "Copying official web bundle to output..."  
 cp -r build/. "$OUTPUT_ABS_PATH/"  
+
+# ============================================================  
+# Step 3b: Shrink the linked wasm with wasm-opt (Plan B)  
+# ============================================================  
+WASM_OUT="$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"  
+if [ -f "$WASM_OUT" ]; then  
+  echo "wasm size BEFORE wasm-opt:"; ls -lh "$WASM_OUT"  
+  wasm-opt -Oz --enable-bulk-memory --enable-threads \  
+    "$WASM_OUT" -o "$WASM_OUT.opt" && mv "$WASM_OUT.opt" "$WASM_OUT"  
+  echo "wasm size AFTER wasm-opt:"; ls -lh "$WASM_OUT"  
+else  
+  echo "WARNING: $WASM_OUT not found; skipping wasm-opt."  
+fi
   
 # --- Sanity check ---  
 for f in cataclysm-tiles.js cataclysm-tiles.wasm cataclysm-tiles.data cataclysm-tiles.data.js index.html; do  
