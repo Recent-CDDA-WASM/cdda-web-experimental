@@ -31,9 +31,6 @@ jobs:
   build:  
     name: Build CDDA WebAssembly  
     runs-on: ubuntu-latest  
-    environment:  
-      name: github-pages  
-      url: ${{ steps.deployment.outputs.page_url }}  
   
     steps:  
       - name: Checkout repository  
@@ -165,19 +162,12 @@ jobs:
         with:  
           name: cdda-web-${{ steps.get_tag.outputs.tag }}  
           path: web-output/  
-          retention-days: 30  
-  
-      - name: Setup Pages  
-        uses: actions/configure-pages@v5  
+          retention-days: 30   
   
       - name: Upload Pages artifact  
         uses: actions/upload-pages-artifact@v3  
         with:  
           path: ./web-output  
-  
-      - name: Deploy to GitHub Pages  
-        id: deployment  
-        uses: actions/deploy-pages@v4
   
       - name: Create deployment summary  
         run: |  
@@ -195,3 +185,18 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY  
           echo "### Deployment" >> $GITHUB_STEP_SUMMARY  
           echo "Deployed to \`gh-pages\` branch - available at GitHub Pages" >> $GITHUB_STEP_SUMMARY
+
+  deploy:  
+    name: Deploy to GitHub Pages  
+    needs: build  
+    runs-on: ubuntu-latest  
+    environment:  
+      name: github-pages  
+      url: ${{ steps.deployment.outputs.page_url }}  
+    steps:  
+      - name: Setup Pages  
+        uses: actions/configure-pages@v5  
+  
+      - name: Deploy to GitHub Pages  
+        id: deployment  
+        uses: actions/deploy-pages@v4
