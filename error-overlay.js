@@ -1,5 +1,6 @@
 (function () {  
   var visible = false;  
+  var KEY = "cdda_errlog";  
   
   function box() {  
     var d = document.getElementById("erroroverlay");  
@@ -31,12 +32,32 @@
     return b;  
   }  
   
+  function persist(line) {  
+    try {  
+      var prev = localStorage.getItem(KEY) || "";  
+      // keep the buffer bounded so it can't grow without limit  
+      var next = (prev + line + "\n");  
+      if (next.length > 100000) next = next.slice(next.length - 100000);  
+      localStorage.setItem(KEY, next);  
+    } catch (e) {}  
+  }  
+  
   function log(tag, msg) {  
-    try { box().textContent += "[" + tag + "] " + msg + "\n"; } catch (e) {}  
+    var line = "[" + tag + "] " + msg;  
+    try { box().textContent += line + "\n"; } catch (e) {}  
+    persist(line);  
   }  
   
   window.addEventListener("load", function () {  
-    btn(); // make sure the toggle button exists once the page is up  
+    btn();  
+    // Show whatever survived the previous crash, then start a fresh buffer.  
+    try {  
+      var prev = localStorage.getItem(KEY);  
+      if (prev) {  
+        box().textContent += "===== PREVIOUS SESSION (survived crash) =====\n" + prev + "===== END PREVIOUS SESSION =====\n";  
+      }  
+      localStorage.setItem(KEY, "");  
+    } catch (e) {}  
     log("STATUS", "crossOriginIsolated=" + self.crossOriginIsolated + "  SharedArrayBuffer=" + (typeof SharedArrayBuffer));  
   });  
   window.addEventListener("error", function (e) {  
