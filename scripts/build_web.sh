@@ -224,9 +224,7 @@ echo "Using wasm-opt at: $WASM_OPT"
 echo "wasm size BEFORE wasm-opt:"  
 ls -lh "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"  
   
-  "$WASM_OPT" -Oz \  
-  "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm" \  
-  -o "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm.opt"  
+"$WASM_OPT" -Oz "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm" -o "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm.opt"  
 mv "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm.opt" "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"
   
 echo "wasm size AFTER wasm-opt:"  
