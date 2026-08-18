@@ -140,7 +140,16 @@ jobs:
             done ) &  
           MEMPID=$!  
           source ~/emsdk/emsdk_env.sh  
-          ccache --zero-stats || true  
+          # Make every ccache the toolchain might invoke executable, then verify.  
+          echo "----- ccache locations -----"  
+          command -v ccache || true  
+          find ~/emsdk -name 'ccache*' -type f 2>/dev/null | while read -r f; do  
+            echo "chmod +x $f"; chmod +x "$f" || true  
+          done  
+          echo "----------------------------"  
+          # Fail early (before the 2-hour compile) if ccache still isn't runnable.  
+          ccache --version  
+          ccache --zero-stats || true
           chmod +x scripts/build_web.sh  
           ./scripts/build_web.sh  
           ccache --show-stats || true  
