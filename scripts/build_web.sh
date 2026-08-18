@@ -263,6 +263,9 @@ if [ -f "$OUTPUT_ABS_PATH/index.html" ]; then
   fi  
   cp "$REPO_ROOT/error-overlay.js" "$OUTPUT_ABS_PATH/"  
   sed -i 's#<head>#<head><script src="error-overlay.js"></script>#' "$OUTPUT_ABS_PATH/index.html"  
+
+cp "$REPO_ROOT/hide-status.js" "$OUTPUT_ABS_PATH/"  
+  sed -i 's#<head>#<head><script src="hide-status.js"></script>#' "$OUTPUT_ABS_PATH/index.html"
   
   echo "index.html post-processed (coi + error overlay)"  
 else  
