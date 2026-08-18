@@ -129,7 +129,7 @@ jobs:
   
       - name: Build CDDA WebAssembly  
         env:  
-          CCACHE: 1
+          CCACHE: 0
           CCACHE_DIR: /home/runner/.ccache  
           CCACHE_MAXSIZE: 5G  
         run: |  
