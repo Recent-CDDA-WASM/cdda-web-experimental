@@ -143,7 +143,7 @@ sed -i 's/^\(\s*\)\$(error SDL3 >= 3.4.0 required.*)/\1$(info SDL3 version check
   
 echo "Forcing SDL3 ports into the emscripten compile/link..."  
 export EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf"  
-export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf /tmp/sdl3_image_prefix/lib/libSDL3_image.a -sDEFAULT_TO_CXX -O0 -g0 -sASYNCIFY_STACK_SIZE=1048576 -sSTACK_SIZE=5MB -sASSERTIONS=2"
+export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf /tmp/sdl3_image_prefix/lib/libSDL3_image.a -sDEFAULT_TO_CXX -O2 -g2 -sASYNCIFY_STACK_SIZE=1048576 -sSTACK_SIZE=5MB -sASSERTIONS=2"
 
 sed -i 's/ifeq (\$(SDL3_DO_VERSION_CHECK),1)/ifeq ($(SDL3_DO_VERSION_CHECK),SKIP)/' Makefile
 
@@ -229,8 +229,8 @@ echo "Using wasm-opt at: $WASM_OPT"
 echo "wasm size BEFORE wasm-opt:"  
 ls -lh "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"  
   
-"$WASM_OPT" -Oz "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm" -o "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm.opt"  
-mv "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm.opt" "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"
+#"$WASM_OPT" -Oz "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm" -o "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm.opt"  
+#mv "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm.opt" "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"
   
 echo "wasm size AFTER wasm-opt:"  
 ls -lh "$OUTPUT_ABS_PATH/cataclysm-tiles.wasm"
