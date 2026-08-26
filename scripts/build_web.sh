@@ -189,6 +189,11 @@ echo "Stripping baked-in -Os/-sLZ4 from emscripten release LDFLAGS so -O0 takes 
 sed -i '/LDFLAGS += -Os/d' Makefile
 sed -i '/LDFLAGS += -sSTACK_SIZE=262144/d; /LDFLAGS += -sASYNCIFY_STACK_SIZE=16384/d' Makefile
 
+echo "Stripping baked-in SDL2 flags so --use-port=sdl3 is the only SDL backend..."  
+sed -i 's/-sUSE_SDL=2//g; s/-sUSE_SDL_IMAGE=2//g; s/-sUSE_SDL_TTF=2//g' Makefile  
+sed -i "s/-sSDL2_IMAGE_FORMATS=\[.png.\]//g" Makefile  
+grep -nE 'USE_SDL|SDL2_IMAGE_FORMATS' Makefile || true
+
 echo "----- emscripten flag lines in Makefile -----"  
 grep -nE '(ASSERTIONS|STACK_SIZE|ASYNCIFY|-Os|-O0|-O2|LZ4)' Makefile || true  
 echo "---------------------------------------------"
