@@ -11,7 +11,7 @@ on:
       release_tag:  
         description: 'CDDA release tag to build (e.g., 0.I for stable Ito, or cdda-experimental-YYYY-MM-DD-HHMM for experimental)'  
         required: true  
-        default: 'cdda-experimental-2026-08-13-1926'  
+        default: ' cdda-0.I-2026-08-24-0428'  
     
 # Lets the build push the finished site to the gh-pages branch.  
 permissions:  
