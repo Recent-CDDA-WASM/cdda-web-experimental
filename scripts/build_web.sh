@@ -178,6 +178,8 @@ ls -la "$SDL_PREFIX/lib" || true
 echo "Contents of $SDL_PREFIX/include (recursive, SDL_image):"  
 find /tmp/sdl3_image_prefix/include \( -name 'SDL.h' -o -name 'SDL_image.h' \) 2>/dev/null
 find "$SDL_PREFIX/include" -name 'SDL_image.h' 2>/dev/null || true
+echo "Locating SDL_ttf.h from the sdl3_ttf port:"  
+find ~/emsdk /tmp /root /home -name 'SDL_ttf.h' 2>/dev/null || true
 # ---- end Option A build ----
 
 echo "----- build-emscripten.sh after patch -----"  
