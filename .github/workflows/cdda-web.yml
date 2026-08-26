@@ -15,7 +15,7 @@ on:
     
 # Lets the build push the finished site to the gh-pages branch.  
 permissions:  
-  contents: read  
+  contents: write 
   pages: write  
   id-token: write
   
@@ -109,6 +109,19 @@ jobs:
         run: |  
           chmod +x scripts/fetch_release.sh  
           ./scripts/fetch_release.sh "${{ steps.get_tag.outputs.tag }}"  
+
+      - name: Publish source to src branch  
+        run: |  
+          cd cdda-source  
+          git init -q  
+          git config user.name "github-actions[bot]"  
+          git config user.email "github-actions[bot]@users.noreply.github.com"  
+          # Don't ship the huge tarball or VCS cruft.  
+          rm -f cataclysm-dda-*.tar.gz  
+          git add -A  
+          git commit -q -m "Source for ${{ steps.get_tag.outputs.tag }}" || echo "nothing to commit"  
+          git branch -M src  
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" src
      
       - name: Free up disk space  
         run: |  
