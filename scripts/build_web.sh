@@ -146,7 +146,7 @@ echo "Patching Makefile to bypass SDL3 version check for emscripten..."
 sed -i 's/^\(\s*\)\$(error SDL3 >= 3.4.0 required.*)/\1$(info SDL3 version check skipped for emscripten)/' Makefile  
   
 echo "Forcing SDL3 ports into the emscripten compile/link..."  
-export EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf"  
+export EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -DUSE_SDL3 -I/tmp/sdl3_image_prefix/include -I/tmp/sdl3_image_prefix/include/SDL3_image"
 export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf /tmp/sdl3_image_prefix/lib/libSDL3_image.a -sDEFAULT_TO_CXX -O2 -g2 -sASYNCIFY_STACK_SIZE=1048576 -sSTACK_SIZE=5MB -sASSERTIONS=2"
 
 sed -i 's/ifeq (\$(SDL3_DO_VERSION_CHECK),1)/ifeq ($(SDL3_DO_VERSION_CHECK),SKIP)/' Makefile
