@@ -46,6 +46,15 @@
         z-index: 1;
       }
 
+      canvas.emscripten, #canvas {  
+        display: block;  
+        width: 100vw;  
+        height: 100vh;  
+        object-fit: contain;      /* keep aspect ratio, no stretch distortion */  
+        image-rendering: pixelated;  
+      }  
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+
       #loading-message {
         color: white;
         position: absolute;
