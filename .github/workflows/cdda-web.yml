@@ -140,16 +140,7 @@ jobs:
             done ) &  
           MEMPID=$!  
           source ~/emsdk/emsdk_env.sh  
-          # Make emsdk's bundled ccache runnable: fix BOTH file exec bits and  
-          # parent-directory search bits (recursive), targeting the known path.  
-          echo "----- ccache locations -----"  
-          command -v ccache || true  
-          chmod -R a+rX ~/emsdk/ccache || true  
-          ls -l ~/emsdk/ccache/git-emscripten_64bit/bin/ || true  
-          echo "----------------------------"
-          # Fail early (before the 2-hour compile) if ccache still isn't runnable.  
-          ccache --version  
-          ccache --zero-stats || true
+          ccache --zero-stats || true  
           chmod +x scripts/build_web.sh  
           ./scripts/build_web.sh  
           ccache --show-stats || true  
