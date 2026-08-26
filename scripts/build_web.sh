@@ -146,14 +146,13 @@ echo "Patching Makefile to bypass SDL3 version check for emscripten..."
 sed -i 's/^\(\s*\)\$(error SDL3 >= 3.4.0 required.*)/\1$(info SDL3 version check skipped for emscripten)/' Makefile  
   
 echo "Forcing SDL3 ports into the emscripten compile/link..."  
-export EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -DUSE_SDL3 -I/tmp/sdl3_image_prefix/include -I/tmp/sdl3_image_prefix/include/SDL3_image"
+export EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -I/tmp/sdl3_image_prefix/include -I/tmp/sdl3_image_prefix/include/SDL3 -I/tmp/sdl3_image_prefix/include/SDL3_image -DUSE_SDL3 -Wno-experimental -Wno-error"
 export LDFLAGS="$LDFLAGS --use-port=sdl3 --use-port=sdl3_ttf /tmp/sdl3_image_prefix/lib/libSDL3_image.a -sDEFAULT_TO_CXX -O2 -g2 -sASYNCIFY_STACK_SIZE=1048576 -sSTACK_SIZE=5MB -sASSERTIONS=2"
 
 sed -i 's/ifeq (\$(SDL3_DO_VERSION_CHECK),1)/ifeq ($(SDL3_DO_VERSION_CHECK),SKIP)/' Makefile
 
 echo "Patching build-emscripten.sh to allow the experimental SDL3 port..."  
-sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -Wno-experimental -Wno-error -g0 -I/tmp/sdl3_image_prefix/include -I/tmp/sdl3_image_prefix/include/SDL3_image -DUSE_SDL3" make PCH=0 #' build-scripts/build-emscripten.sh
-
+sed -i 's#^\(\s*\)make #\1EMCC_CFLAGS="--use-port=sdl3 --use-port=sdl3_ttf -Wno-experimental -Wno-error -g0 -I/tmp/sdl3_image_prefix/include -I/tmp/sdl3_image_prefix/include/SDL3 -I/tmp/sdl3_image_prefix/include/SDL3_image -DUSE_SDL3" make PCH=0 #' build-scripts/build-emscripten.sh
 # ---- Option A: build SDL3_image from source to a wasm static lib ----  
 SDL_PREFIX="/tmp/sdl3_image_prefix"  
 echo "Building SDL3_image (+ throwaway SDL3 for CMake config) from source..."  
