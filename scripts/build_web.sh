@@ -40,14 +40,18 @@ echo "Applying patched mmap_file.cpp into src/..."
 cp "$REPO_ROOT/mmap_file.cpp" "src/mmap_file.cpp"  
   
 # ============================================================  
-# Step 0b: Patched cata_allocator.cpp (disable snmalloc on wasm)  
+# Step 0b: Patched cata_allocator.cpp (disable snmalloc on wasm) and new sht for more recent builds
 # ============================================================  
-if [ ! -f "$REPO_ROOT/cata_allocator.cpp" ]; then  
+ if [ ! -f "$REPO_ROOT/cata_allocator.cpp" ]; then  
   echo "ERROR: patched cata_allocator.cpp not found at repo root ($REPO_ROOT)."  
   exit 1  
 fi  
-echo "Applying patched cata_allocator.cpp into src/..."  
-cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"  
+if [ -f "src/cata_allocator.h" ]; then  
+  echo "Applying patched cata_allocator.cpp into src/..."  
+  cp "$REPO_ROOT/cata_allocator.cpp" "src/cata_allocator.cpp"  
+else  
+  echo "src/cata_allocator.h not present in this source tree; skipping cata_allocator.cpp patch (leaving upstream files as-is)."  
+fi
 
 # ============================================================  
 # Step 0c: Ensure emscripten.h is included in game_io.cpp  
