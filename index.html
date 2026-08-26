@@ -205,8 +205,10 @@
         settingsMenu.style.display = "none";
       });
 
-      document.getElementById("toggle-fullscreen").onclick = () => {
-        screenfull.toggle();
+      document.getElementById("toggle-fullscreen").onclick = () => {  
+        window.__cddaAllowFS = true;  
+        screenfull.toggle();  
+        setTimeout(function () { window.__cddaAllowFS = false; }, 1000);  
       };
 
       document.getElementById("export-saves").onclick = async () => {
@@ -243,6 +245,27 @@
       };
 
       var Module = {
+        // Block browser zoom (Ctrl+wheel, Ctrl +/-/0, pinch)  
+      window.addEventListener("wheel", function (e) {  
+        if (e.ctrlKey) e.preventDefault();  
+      }, { passive: false });  
+      window.addEventListener("keydown", function (e) {  
+        if ((e.ctrlKey || e.metaKey) &&  
+            (e.key === "+" || e.key === "-" || e.key === "=" || e.key === "0")) {  
+          e.preventDefault();  
+        }  
+      }, { passive: false });  
+      // Block fullscreen unless it came from the gear-menu Toggle button  
+      (function () {  
+        var rfs = Element.prototype.requestFullscreen;  
+        if (rfs) {  
+          Element.prototype.requestFullscreen = function () {  
+            if (!window.__cddaAllowFS) return Promise.reject(new Error("fs blocked"));  
+            return rfs.apply(this, arguments);  
+          };  
+        }  
+      })();
+      
         preRun: [],
         postRun: [],
         canvas: (function () {
