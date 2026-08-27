@@ -10,17 +10,21 @@
     c.style.setProperty("object-fit", "contain", "important");  
   }  
   
-  function attach() {  
+  // Re-apply whenever SDL/emscripten overwrites the canvas style attr.  
+  function watch() {  
     var c = document.getElementById("canvas");  
-    if (!c) { setTimeout(attach, 200); return; }  
+    if (!c) return false;  
     fit();  
-    // Re-apply whenever SDL/emscripten rewrites the canvas size or style.  
-    new MutationObserver(fit).observe(c, {  
-      attributes: true,  
-      attributeFilter: ["style", "width", "height"]  
-    });  
+    var mo = new MutationObserver(function () { fit(); });  
+    mo.observe(c, { attributes: true, attributeFilter: ["style", "width", "height"] });  
+    return true;  
   }  
   
-  window.addEventListener("load", attach);  
-  window.addEventListener("resize", fit);  
+  window.addEventListener("load", function () {  
+    if (watch()) return;  
+    // canvas is created late by the wasm module; poll until it exists.  
+    var n = 0, t = setInterval(function () {  
+      if (watch() || ++n > 80) clearInterval(t); // ~20s  
+    }, 250);  
+  });  
 })();
