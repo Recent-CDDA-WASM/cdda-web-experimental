@@ -2,29 +2,47 @@
   function fit() {  
     var c = document.getElementById("canvas");  
     if (!c) return;  
-    c.style.setProperty("position", "absolute", "important");  
-    c.style.setProperty("top", "0", "important");  
-    c.style.setProperty("left", "0", "important");  
-    c.style.setProperty("width", "100vw", "important");  
-    c.style.setProperty("height", "100vh", "important");  
-    c.style.setProperty("object-fit", "contain", "important");  
+    c.style.position = "absolute";  
+    c.style.top = "0";  
+    c.style.left = "0";  
+    c.style.width = "100vw";  
+    c.style.height = "100vh";  
+    c.style.objectFit = "contain";  
+  
+    // On-screen readout so you can diagnose without DevTools.  
+    var box = document.getElementById("__fitdbg");  
+    if (!box) {  
+      box = document.createElement("div");  
+      box.id = "__fitdbg";  
+      box.style.cssText =  
+        "position:fixed;top:0;right:0;z-index:99999;" +  
+        "background:black;color:lime;font:12px monospace;" +  
+        "padding:2px 6px;pointer-events:none;";  
+      document.body.appendChild(box);  
+    }  
+    box.textContent =  
+      "canvas buffer " + c.width + "x" + c.height +  
+      "  window " + window.innerWidth + "x" + window.innerHeight +  
+      "  DPR " + window.devicePixelRatio;  
   }  
   
-  // Re-apply whenever SDL/emscripten overwrites the canvas style attr.  
+  // Re-apply whenever SDL rewrites the canvas attributes/style.  
   function watch() {  
     var c = document.getElementById("canvas");  
     if (!c) return false;  
+    new MutationObserver(fit).observe(c, {  
+      attributes: true,  
+      attributeFilter: ["width", "height", "style"]  
+    });  
     fit();  
-    var mo = new MutationObserver(function () { fit(); });  
-    mo.observe(c, { attributes: true, attributeFilter: ["style", "width", "height"] });  
     return true;  
   }  
   
-  window.addEventListener("load", function () {  
-    if (watch()) return;  
-    // canvas is created late by the wasm module; poll until it exists.  
-    var n = 0, t = setInterval(function () {  
-      if (watch() || ++n > 80) clearInterval(t); // ~20s  
-    }, 250);  
-  });  
+  window.addEventListener("load", fit);  
+  window.addEventListener("resize", fit);  
+  
+  // Keep trying until the canvas exists, then attach the observer.  
+  var n = 0, t = setInterval(function () {  
+    if (watch() || ++n > 120) clearInterval(t); // up to ~30s  
+  }, 250);  
 })();
