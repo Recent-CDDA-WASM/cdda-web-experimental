@@ -288,6 +288,9 @@ cp "$REPO_ROOT/hide-status.js" "$OUTPUT_ABS_PATH/"
 
   cp "$REPO_ROOT/no-zoom.js" "$OUTPUT_ABS_PATH/"  
   sed -i 's#<head>#<head><script src="no-zoom.js"></script>#' "$OUTPUT_ABS_PATH/index.html"
+
+cp "$REPO_ROOT/fit-canvas.js" "$OUTPUT_ABS_PATH/"  
+  sed -i 's#<head>#<head><script src="fit-canvas.js"></script>#' "$OUTPUT_ABS_PATH/index.html"
   
   echo "index.html post-processed (coi + error overlay)"  
 else  
